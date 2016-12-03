@@ -13,9 +13,9 @@ public enum InputType {
 	MONEY_CANCEL;
 
 	private static final String OK_MATCH = "";
-	private static final String CANCEL_MATCH = "";
-	private static final String EXIT_MATCH = "";
-	private static final String QUIT_MATCH = "";
+	private static final String CANCEL_MATCH = "cancel";
+	private static final String EXIT_MATCH = "exit";
+	private static final String QUIT_MATCH = "quit";
 
 	public static boolean isOK(String input) {
 		return input.equals(OK_MATCH);
@@ -31,6 +31,10 @@ public enum InputType {
 	
 	public static boolean isQuit(String input) {
 		return input.equals(QUIT_MATCH);
+	}
+	
+	public static boolean isUniversalExit(String input) {
+		return InputType.isCancel(input) || InputType.isExit(input) || InputType.isQuit(input);
 	}
 	
 	public static boolean isText(String input) {

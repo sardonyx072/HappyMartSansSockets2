@@ -126,6 +126,15 @@ public enum Screen {
 			"****************************************************************"	+ "\n" +
 			"Set drawer value to how much?: ",InputType.MONEY_CANCEL
 			),
+	RETURN_TRANSACTION_FIRST(
+			"Happy Mart Store Manager"											+ "\n" +
+			"Currently signed in as: {{0}}"										+ "\n" +
+			"****************************************************************"	+ "\n" +
+			"Current Sale: {{1}}"												+ "\n" +
+			"{{2}}"																+ "\n" +
+			"****************************************************************"	+ "\n" +
+			"Enter Receipt Number: ",InputType.OPTION_CANCEL
+			),
 	RETURN_TRANSACTION(
 			"Happy Mart Store Manager"											+ "\n" +
 			"Currently signed in as: {{0}}"										+ "\n" +
@@ -133,6 +142,7 @@ public enum Screen {
 			"Current Sale: {{1}}"												+ "\n" +
 			"{{2}}"																+ "\n" +
 			"****************************************************************"	+ "\n" +
+			"Receipt Number Invalid."											+ "\n" +
 			"Enter Receipt Number: ",InputType.OPTION_CANCEL
 			),
 	SCAN_ITEM_FIRST(
@@ -218,7 +228,7 @@ public enum Screen {
 		String raw;
 		do {
 			cls();
-			System.out.println(temp);
+			System.out.print(temp);
 			raw = scan.nextLine();
 		} while(!this.type.isValid(raw));
 		return raw;

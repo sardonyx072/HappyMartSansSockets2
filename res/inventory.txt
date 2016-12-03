@@ -1,0 +1,102 @@
+67	Celery	1	25	10
+50	Freezer bags 	3	10	10
+62	Taco shells	2	20	10
+36	Biscuits	1	30	10
+30	Oatmeal	2	50	10
+59	Pork chops 	3	25	10
+60	Salsa	2	20	10
+79	Pasta 	1	30	10
+5	Bread	2	25	10
+44	Dinners	3	25	10
+95	Dish soap	3	25	10
+105	Paper towels	1	10	10
+17	Soft drinks	3	50	10
+18	Tea bags	2	50	10
+29	Granola bars	2	50	10
+22	Corn	1	50	10
+77	Beans	2	30	10
+78	Instant mashed potatoes	3	30	10
+86	Antacid	3	25	10
+91	Dog food	8	15	10
+25	Potatoes	1	50	10
+100	Shaving cream	2	25	10
+83	Cookies	2	25	10
+90	Cat litter	4	15	10
+23	Fruit	2	50	10
+58	Ground turkey 	3	25	10
+61	Taco seasoning	1	20	10
+19	Water	4	50	10
+41	Yogurt	1	30	10
+84	Gum	2	25	10
+97	Hand soap	1	25	10
+48	Baking cups	3	10	10
+68	Corn	1	25	10
+38	Eggs	2	30	10
+26	Spaghetti sauce	2	50	10
+28	Cereal	2	50	10
+69	Lettuce	1	25	10
+40	Milk	3	30	10
+56	Chicken 	4	25	10
+72	Tomatoes	1	25	10
+11	Olive oil	4	50	10
+102	Toothpaste	3	25	10
+32	Marinade	2	25	10
+42	Broccoli	2	25	10
+21	Chili	2	50	10
+7	Hot dog buns	2	30	10
+70	Oranges	1	25	10
+66	Carrots	2	25	10
+104	Laundry detergent	4	10	10
+101	Toilet paper	6	25	10
+94	Deodorant	3	25	10
+75	Birthday card	4	20	10
+39	Cheese 	2	30	10
+98	Razors	5	25	10
+37	Butter	3	30	10
+65	Bananas	1	25	10
+34	Lemon juice	3	25	10
+20	Beans	1	50	10
+103	Dish soap	1	10	10
+45	French Fries	1	25	10
+93	Bath soap	4	25	10
+63	Tortillas	2	20	10
+27	Tuna	1	50	10
+96	Floss	2	25	10
+15	Coffee	4	50	10
+92	Dog treats	3	15	10
+71	Peppers	1	25	10
+85	Popcorn	2	25	10
+9	Cinnamon	3	50	10
+47	Aluminum foil	2	10	10
+76	Light bulbs	2	20	10
+82	Chips	2	25	10
+54	Plastic cups	3	10	10
+6	Hamburger buns	2	30	10
+10	Flour	3	50	10
+49	Freezer bags	3	10	10
+80	Rice	2	30	10
+16	Juice 	1	50	10
+24	Peas	1	50	10
+55	Wax paper	3	10	10
+46	Pizzas	3	25	10
+74	Batteries	5	20	10
+31	Ketchup	2	25	10
+57	Ground beef 	3	25	10
+14	White sugar	3	50	10
+8	Brown sugar	2	50	10
+13	Vanilla	2	50	10
+99	Shampoo	2	25	10
+106	Trash bags	3	10	10
+87	Band-aids	4	25	10
+33	Mustard	3	25	10
+12	Pepper	3	50	10
+73	Potatoes	5	25	10
+35	Salad dressing	2	25	10
+52	Napkins	4	10	10
+53	Plastic wrap	3	10	10
+81	Candy	2	25	10
+89	Cat food 	1	15	10
+51	Freezer bags 	3	10	10
+88	Pain relief medicine	5	25	10
+43	Carrots	2	25	10
+64	Apples	4	25	10

@@ -12,6 +12,7 @@ public class Register {
 	private static final String REPORTS_DIRECTORY = "..\\res\\reports\\";
 	private static final int MAX_EMPLOYEE_ID = 9999;
 	private static final int MAX_ITEMTYPE_ID = 9999;
+	private static final int MAX_TRANSACTION_ID = 9999;
 	
 	private HashSet<Employee> employees;
 	private HashSet<ItemQuantityManaged> inventory;
@@ -32,6 +33,9 @@ public class Register {
 		this.setReferencedTransactionIDs(new ArrayList<Integer>());
 		this.setItemsToPurchase(new ArrayList<ItemQuantity>());
 		this.setItemsToReturn(new ArrayList<ItemQuantity>());
+		this.setCanUpdateQuantityLastScan(false);
+		this.setLastScanWasItemToPurchase(false);
+		this.setLastScanWasItemToReturn(false);
 	}
 	
 	private void initEmployees() {
@@ -76,6 +80,15 @@ public class Register {
 
 	public HashSet<Employee> getEmployees() {
 		return employees;
+	}
+	
+	public Employee getEmployeeByID(int id) {
+		for (Employee e : this.getEmployees()) {
+			if (e.getID() == id) {
+				return e;
+			}
+		}
+		return null;
 	}
 
 	private void setEmployees(HashSet<Employee> employees) {
@@ -148,6 +161,15 @@ public class Register {
 		return this.inventory;
 	}
 	
+	public ItemQuantityManaged getItemfromInventoryByID(int id) {
+		for (ItemQuantityManaged i : this.getInventory()) {
+			if (i.getType().getID() == id) {
+				return i;
+			}
+		}
+		return null;
+	}
+	
 	private void setInventory(HashSet<ItemQuantityManaged> inventory) {
 		this.inventory = inventory;
 		this.saveInventory();
@@ -192,6 +214,18 @@ public class Register {
 			}
 		}
 		return false;
+	}
+	
+	public boolean signOut() {
+		if (this.getEmployeeSignedIn() != null) {
+			this.saveEmployees();
+			this.saveInventory();
+			this.saveDrawer();
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	public boolean credentialsMatchEmployeeSignedIn(String user, String pass) {
@@ -288,6 +322,17 @@ public class Register {
 		this.setLastScanWasItemToReturn(false);
 	}
 	
+	public void removeItemFromPurchase(int index) {
+		this.itemsToPurchase.remove(index);
+	}
+	
+	public void removeItemFromPurchase(int index, int quantity) {
+		this.itemsToPurchase.get(index).removeQuantity(quantity);
+		if (this.itemsToPurchase.get(index).getQuantity() == 0) {
+			this.itemsToPurchase.remove(index);
+		}
+	}
+	
 	public void updateQuantityOfItemToPurchase(int index, int quantity) {
 		this.itemsToPurchase.get(index).setQuantity(quantity);
 	}
@@ -323,11 +368,38 @@ public class Register {
 		this.itemsToReturn = itemsToReturn;
 	}
 	
+	public boolean isValidReturn (ItemQuantity items, int transactionID) {
+		File[] files = new File(TRANSACTIONS_DIRECTORY).listFiles();
+		for (File f : files) {
+			if (f.getName().equals(transactionID + ".txt")) {
+				Transaction t = this.loadTransaction(transactionID);
+				for (ItemQuantity i : t.getPurchased()) {
+					if (i.getType().getID() == items.getType().getID() && i.getQuantity() > items.getQuantity()) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		return false;
+	}
+	
 	public void addItemToReturn(ItemQuantity item) {
 		this.itemsToReturn.add(item);
 		this.setCanUpdateQuantityLastScan(true);
 		this.setLastScanWasItemToPurchase(false);
 		this.setLastScanWasItemToReturn(true);
+	}
+	
+	public void removeItemFromReturn(int index) {
+		this.itemsToReturn.remove(index);
+	}
+	
+	public void removeItemFromReturn(int index, int quantity) {
+		this.itemsToReturn.get(index).removeQuantity(quantity);
+		if (this.itemsToReturn.get(index).getQuantity() == 0) {
+			this.itemsToReturn.remove(index);
+		}
 	}
 	
 	public void updateQuantityOfItemToReturn(int index, int quantity) {
@@ -357,7 +429,7 @@ public class Register {
 		this.lastScanWasItemToPurchase = flag;
 	}
 	
-	public boolean lastScanWasItemtoReturn() {
+	public boolean lastScanWasItemToReturn() {
 		return this.lastScanWasItemToReturn;
 	}
 	
@@ -365,8 +437,33 @@ public class Register {
 		this.lastScanWasItemToReturn = flag;
 	}
 	
+	public ItemQuantity getLastItemScanned() {
+		if (this.canUpdateQuantityLastScan() && this.lastScanWasItemToPurchase()) {
+			return this.getItemsToPurchase().get(this.getItemsToPurchase().size()-1);
+		}
+		else if (this.canUpdateQuantityLastScan() && this.lastScanWasItemToReturn()) {
+			return this.getItemsToReturn().get(this.getItemsToReturn().size()-1);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public void updateLastItemScanned(int quantity) {
+		if (this.canUpdateQuantityLastScan() && this.lastScanWasItemToPurchase()) {
+			this.updateQuantityOfItemToPurchase(this.getItemsToPurchase().size()-1, quantity);
+		}
+		else if (this.canUpdateQuantityLastScan() && this.lastScanWasItemToReturn()) {
+			this.updateQuantityOfItemToReturn(this.getItemsToReturn().size()-1, quantity);
+		}
+	}
+	
 	public int getCartTotal() {
 		return this.getItemsToPurchaseSubtotal() - this.getItemsToReturnSubtotal();
+	}
+	
+	public String getCartTotalAsString() {
+		return NumberFormat.getCurrencyInstance().format(this.getCartTotal()/100.0);
 	}
 	
 	public String getCartAsString() {
@@ -399,5 +496,172 @@ public class Register {
 			}
 		}
 		return builder.toString();
+	}
+	
+	private int generateNextTransactionID() {
+		File[] files = new File(TRANSACTIONS_DIRECTORY).listFiles();
+		for (int i = 0; i < MAX_TRANSACTION_ID; i++) {
+			boolean alreadyExists = false;
+			for (File f : files) {
+				if (Integer.parseInt(f.getName().substring(0,f.getName().indexOf('.'))) == i) {
+					alreadyExists = true;
+					break;
+				}
+			}
+			if(!alreadyExists) {
+				return i;
+			}
+		}
+		throw new IllegalStateException();
+	}
+	
+	public void saveTransaction() {
+		try {
+			Transaction t = new Transaction(this.generateNextTransactionID(),this.getEmployeeSignedIn(),this.getReferencedTransactionIDs(),this.getItemsToPurchase(),this.getItemsToReturn(),new Date());
+			BufferedWriter writer = new BufferedWriter(new FileWriter(TRANSACTIONS_DIRECTORY + t.getID() + ".txt"));
+			writer.write(t.getID() + "\n" + t.getEmployee().getID() + "\n" + t.getTimestamp().toString());
+			writer.write("Referenced IDs:");
+			for (Integer i : this.getReferencedTransactionIDs()) {
+				writer.write("\n" + i);
+			}
+			writer.write("\n\nPurchased:");
+			for (ItemQuantity i : this.getItemsToPurchase()) {
+				writer.write(i.getType().getID() + "\t" + i.getQuantity());
+			}
+			writer.write("\n\nReturned:");
+			for (ItemQuantity i : this.getItemsToReturn()) {
+				writer.write(i.getType().getID() + "\t" + i.getQuantity());
+			}
+			writer.close();
+		} catch (IOException e) {
+			//what can ya do?
+		}
+	}
+	
+	public Transaction loadTransaction(int transactionID) {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(TRANSACTIONS_DIRECTORY + transactionID + ".txt"));
+			int id = Integer.parseInt(reader.readLine());
+			int employeeID = Integer.parseInt(reader.readLine());
+			Date timestamp = new Date(Date.parse(reader.readLine()));
+			ArrayList<Integer> referencedIDs = new ArrayList<Integer>();
+			ArrayList<ItemQuantity> purchased = new ArrayList<ItemQuantity>();
+			ArrayList<ItemQuantity> returned = new ArrayList<ItemQuantity>();
+			if (reader.readLine().equals("Referenced IDs:")) {
+				String line;
+				while (!(line = reader.readLine()).isEmpty()) {
+					referencedIDs.add(Integer.parseInt(line));
+				}
+			}
+			if (reader.readLine().equals("Purchased:")) {
+				String line;
+				while (!(line = reader.readLine()).isEmpty()) {
+					StringTokenizer tokenizer = new StringTokenizer(line,"\t");
+					purchased.add(new ItemQuantity(this.getItemfromInventoryByID(Integer.parseInt(tokenizer.nextToken())).getType(),Integer.parseInt(tokenizer.nextToken())));
+					if (tokenizer.hasMoreTokens())
+						throw new IllegalArgumentException();
+				}
+			}
+			if (reader.readLine().equals("Returned:")) {
+				String line;
+				while (!(line = reader.readLine()).isEmpty()) {
+					StringTokenizer tokenizer = new StringTokenizer(line,"\t");
+					purchased.add(new ItemQuantity(this.getItemfromInventoryByID(Integer.parseInt(tokenizer.nextToken())).getType(),Integer.parseInt(tokenizer.nextToken())));
+					if (tokenizer.hasMoreTokens())
+						throw new IllegalArgumentException();
+				}
+			}
+			reader.close();
+			return new Transaction(id,this.getEmployeeByID(employeeID),referencedIDs,purchased,returned,timestamp);
+		} catch (IOException | IllegalArgumentException e) {
+			return null;
+		}
+	}
+	
+	private ArrayList<Transaction> loadAllTransactions() {
+		ArrayList<Transaction> transactions = new ArrayList<Transaction>();
+		File[] files = new File(TRANSACTIONS_DIRECTORY).listFiles();
+		for (File f : files) {
+			transactions.add(this.loadTransaction(Integer.parseInt(f.getName().substring(0,f.getName().indexOf('.')))));
+		}
+		return transactions;
+	}
+	
+	private void writeGeneratedReport(String report, String filename) {
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(REPORTS_DIRECTORY + filename + ".txt"));
+			writer.write(report);
+			writer.close();
+		} catch (IOException e) {}
+	}
+	
+	public void generateReport() {
+		StringBuilder builder = new StringBuilder();
+		ArrayList<Transaction> transactions = this.loadAllTransactions();
+		int numberOfSales = 0;
+		int totalSalesAmount = 0;
+		int totalReturnsAmount = 0;
+		int net = 0;
+		builder.append("Store Report:");
+		for (Transaction t : transactions) {
+			numberOfSales++;
+			totalSalesAmount += t.getPurchasedSubtotal();
+			totalReturnsAmount += t.getReturnedSubtotal();
+			builder.append("\n\n**********************************\n" + t);
+		}
+		net = totalSalesAmount - totalReturnsAmount;
+		NumberFormat formatter = NumberFormat.getCurrencyInstance();
+		String totalMadeFormatted = formatter.format(totalSalesAmount/100.0);
+		String meanMadeFormatted = formatter.format(1.0*totalSalesAmount/numberOfSales/100.0);
+		String totalLostFormatted = formatter.format(totalReturnsAmount/100.0);
+		String meanLostFormatted = formatter.format(1.0*totalReturnsAmount/numberOfSales/100.0);
+		String totalNetFormatted = formatter.format(net/100.0);
+		String meanNetFormatted = formatter.format(1.0*net/numberOfSales/100.0);
+		builder.append("\n\n**********************************");
+		builder.append("\nStatistics:");
+		builder.append("\nNumber of transactions: " + numberOfSales);
+		builder.append("\nTotal money made: " + totalMadeFormatted);
+		builder.append("\nMean money made per transaction: " + meanMadeFormatted);
+		builder.append("\nTotal money lost: " + totalLostFormatted);
+		builder.append("\nMean money lost per transaction: " + meanLostFormatted);
+		builder.append("\nNet money made: " + totalNetFormatted);
+		builder.append("\nNet money made per transaction: " + meanNetFormatted);
+		this.writeGeneratedReport(builder.toString(), "Store Report - " + new Date());
+	}
+	
+	public void generateReport(Employee employee) {
+		StringBuilder builder = new StringBuilder();
+		ArrayList<Transaction> transactions = this.loadAllTransactions();
+		int numberOfSales = 0;
+		int totalSalesAmount = 0;
+		int totalReturnsAmount = 0;
+		int net = 0;
+		builder.append("Store Report:");
+		for (Transaction t : transactions) {
+			if (t.getEmployee().equals(employee)) {
+				numberOfSales++;
+				totalSalesAmount += t.getPurchasedSubtotal();
+				totalReturnsAmount += t.getReturnedSubtotal();
+				builder.append("\n\n**********************************\n" + t);
+			}
+		}
+		net = totalSalesAmount - totalReturnsAmount;
+		NumberFormat formatter = NumberFormat.getCurrencyInstance();
+		String totalMadeFormatted = formatter.format(totalSalesAmount/100.0);
+		String meanMadeFormatted = formatter.format(1.0*totalSalesAmount/numberOfSales/100.0);
+		String totalLostFormatted = formatter.format(totalReturnsAmount/100.0);
+		String meanLostFormatted = formatter.format(1.0*totalReturnsAmount/numberOfSales/100.0);
+		String totalNetFormatted = formatter.format(net/100.0);
+		String meanNetFormatted = formatter.format(1.0*net/numberOfSales/100.0);
+		builder.append("\n\n**********************************");
+		builder.append("\nStatistics:");
+		builder.append("\nNumber of transactions: " + numberOfSales);
+		builder.append("\nTotal money made: " + totalMadeFormatted);
+		builder.append("\nMean money made per transaction: " + meanMadeFormatted);
+		builder.append("\nTotal money lost: " + totalLostFormatted);
+		builder.append("\nMean money lost per transaction: " + meanLostFormatted);
+		builder.append("\nNet money made: " + totalNetFormatted);
+		builder.append("\nNet money made per transaction: " + meanNetFormatted);
+		this.writeGeneratedReport(builder.toString(), "Employee Report - " + employee + " - " + new Date());
 	}
 }
